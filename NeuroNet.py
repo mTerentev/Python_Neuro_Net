@@ -34,7 +34,7 @@ class Net():
         self.backward_propogate(target)
         for layer in self.layers:
             if type(layer)!=InitLayer:
-                layer.weights_update(alpha)
+                 layer.weights_update(alpha)
     def print(self):
         for layer in self.layers:
             print(np.transpose(layer.values_vector))
@@ -68,34 +68,3 @@ class HiddenLayer(Layer):
             self.previous_layer_values_vector=previous_layer_values_vector
     def weights_update(self,a):
         self.weights_matrix-=a*(self.delta_l.dot(np.transpose(self.previous_layer_values_vector)))
-net=Net(
-    InitLayer(6),
-    HiddenLayer(50),
-    HiddenLayer(50),
-    HiddenLayer(3)
-)
-sgm=lambda x: 1/(1+np.exp(-x))
-arcsgm=lambda x: np.log(x/(1-x))
-for i in range(10000):
-    a=2*random.random(3)-1
-    b=2*random.random(3)-1
-    net.train([*a,*b],np.asfarray(sgm(np.cross(a,b))),0.8)
-    # print(net.forward_propogate([random.random()]))
-for i in range(10):
-    a=2*random.random(3)-1
-    b=2*random.random(3)-1
-    print(a)
-    print(b)
-    print(np.cross(a,b))
-    print(arcsgm(net.forward_propogate([*a,*b])))
-    print()
-
-a=[1,1,0]
-b=[1,-1,0]
-print(np.cross(a,b))
-print(arcsgm(net.forward_propogate([*a,*b])))
-
-# pre=net.layers[0]
-# for layer in net.layers[1:]:
-#     layer.forward_propogate(pre.values_vector,True)
-#     pre=layer
