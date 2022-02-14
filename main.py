@@ -1,5 +1,3 @@
-from cairo import STATUS_DEVICE_FINISHED
-from matplotlib.cbook import safe_masked_invalid
 from NeuroNet import *
 import tensorflow as tf
 import numpy as np
@@ -23,19 +21,15 @@ print("Number of original training examples:", len(x_train))
 print("Number of original test examples:", len(x_test))
 
 net=Net(
-    InitLayer(28**2),
+    InputLayer(28**2),
     HiddenLayer(500),
     HiddenLayer(500),
-    HiddenLayer(10)
+    HiddenLayer(10),
+    OutLayer()
 )
-for i in range(1000000):
-    print(i)
-    k=np.random.randint(60000)
-    x_train_vector=np.array(x_train[k,:,:,0])
-    x_train_vector.resize(28**2)
-    target=np.zeros(10)
-    target[y_train[k]]=1
-    net.train(x_train_vector,target,0.01)
+
+x_train=np.reshape(x_train,(60000,28**2))
+net.train(x_train,y_train,0.01,1,10000)
 
 n=10
 fig,ax=plt.subplots(2,n)

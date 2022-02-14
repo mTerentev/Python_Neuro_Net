@@ -1,70 +1,86 @@
+from tkinter.tix import INTEGER
 import numpy as np
-from numpy import random
-
-class Net():
-    layers=[]
-    def __init__(self,*args):
-        self.layers=args
-        previous_layer=None
-        for layer in self.layers:
-            if type(layer)!=InitLayer:
-                layer.connect(previous_layer)
-            previous_layer=layer
-    def forward_propogate(self,input):
-        self.layers[0].set_input(input)
-        for layer in self.layers:
-            if type(layer)!=InitLayer:
-                layer.forward_propogate(previous_layer.values_vector)
-            previous_layer=layer
-        return previous_layer.values_vector
-    
-    def backward_propogate(self,target,i=1):
-        layer=self.layers[i]
-        previous_layer=self.layers[i-1]
-        layer.forward_propogate(previous_layer.values_vector,True)
-        if i==len(self.layers)-1:
-            layer.delta_l=(layer.values_vector-np.transpose([np.array(target)]))*layer.activation_function_derivative
-            return 0
-        self.backward_propogate(target,i+1)
-        next_layer=self.layers[i+1]
-        layer.delta_l=(np.transpose(next_layer.weights_matrix)).dot(next_layer.delta_l)*layer.activation_function_derivative
-
-    def train(self,input,target,alpha):
-        self.layers[0].set_input(input)
-        self.backward_propogate(target)
-        for layer in self.layers:
-            if type(layer)!=InitLayer:
-                 layer.weights_update(alpha)
-    def print(self):
-        for layer in self.layers:
-            print(np.transpose(layer.values_vector))
 class Layer():
-    number_of_neurons=0
     values_vector=None
+    previous_layer=None
     def __init__(self,n):
-        self.number_of_neurons=n
         self.values_vector=np.zeros((n,1))
+    def connect(self,previous_layer):
+        self.previous_layer=previous_layer
 
-class InitLayer(Layer):
+class InputLayer(Layer):
     def set_input(self,i):
         self.values_vector=np.transpose(np.array([i]))
+
+class OutLayer(Layer):
+    def __init__(self):
+        super().__init__(0)
+    def output(self):
+        return self.previous_layer.values_vector
 
 class HiddenLayer(Layer):
     activation_function=lambda self,x: 1/(1+np.exp(-x))
     activation_function_derivative=None
     delta_l=None
-    previous_layer_values_vector=None
     offsets_vector=None
     weights_matrix=None
+
+    def connect(self,previous_layer):
+        super().connect(previous_layer)
+        self.weights_matrix=2*np.random.random((len(self.values_vector),len(previous_layer.values_vector)))-1
+
     def __init__(self, n):
         super().__init__(n)
         self.offsets_vector=np.random.random((n,1))
-    def connect(self,previous_layer):
-        self.weights_matrix=2*np.random.random((self.number_of_neurons,previous_layer.number_of_neurons))-1
-    def forward_propogate(self,previous_layer_values_vector,learning=False):
-        self.values_vector=self.activation_function(self.weights_matrix.dot(previous_layer_values_vector)+self.offsets_vector)
+    
+    def forward_propogate(self,learning=False):
+        self.values_vector=self.activation_function(self.weights_matrix.dot(self.previous_layer.values_vector)+self.offsets_vector)
         if learning:
             self.activation_function_derivative=self.values_vector*(1-self.values_vector)
-            self.previous_layer_values_vector=previous_layer_values_vector
     def weights_update(self,a):
-        self.weights_matrix-=a*(self.delta_l.dot(np.transpose(self.previous_layer_values_vector)))
+        self.weights_matrix-=a*(self.delta_l.dot(np.transpose(self.previous_layer.values_vector)))
+    def offsets_update(self,a):
+        self.offsets_vector-=a*self.delta_l
+
+class Net():
+    input_layer:InputLayer=None
+    hidden_layers:HiddenLayer=[]
+    out_layer:OutLayer=None
+
+    def __init__(self,*args):
+        (self.input_layer, *self.hidden_layers, self.out_layer) =args
+        pl=self.input_layer
+        for layer in [*self.hidden_layers, self.out_layer]:
+            layer.connect(pl)
+            pl=layer
+    
+    def forward_propogate(self,input,learn=False):
+        self.input_layer.set_input(input)
+        for layer in self.hidden_layers:
+            layer.forward_propogate(learn)
+        return self.out_layer.output()
+    
+    def backward_propogate(self,error,i=0):
+        layer=self.hidden_layers[i]
+        next_layer=[*self.hidden_layers,self.out_layer][i+1]
+        if type(next_layer)==OutLayer:
+            layer.delta_l=error*layer.activation_function_derivative
+            return 0
+        self.backward_propogate(error,i+1)
+        layer.delta_l=(np.transpose(next_layer.weights_matrix)).dot(next_layer.delta_l)*layer.activation_function_derivative
+
+    def train(self,x_train,y_train,alpha=0.1,batch=10,iterations=10000):
+        for iteration in range(iterations):
+            print(iteration)
+            errors=[]
+            for i in range(batch):
+                k=np.random.randint(len(x_train))
+                errors.append(self.forward_propogate(x_train[k],True)-y_train[k])
+            error=np.average(errors)
+            self.backward_propogate(error)
+            for layer in self.hidden_layers:
+                layer.weights_update(alpha)
+
+    def print(self):
+        for layer in [self.input_layer,self.hidden_layers,self.out_layer]:
+            print(np.transpose(layer.values_vector))
