@@ -59,23 +59,27 @@ class Net():
             layer.forward_propogate(learn)
         return self.out_layer.output()
     
-    def backward_propogate(self,target,i=0):
-        layer=[*self.hidden_layers,self.out_layer][i]
-        previous_layer=self.hidden_layers[i-1]
+    def backward_propogate(self,error,i=0):
+        layer=self.hidden_layers[i]
         layer.forward_propogate(True)
         if i==len(self.hidden_layers)-1:
-            layer.delta_l=(layer.values_vector-target)*layer.activation_function_derivative
+            layer.delta_l=error*layer.activation_function_derivative
             return 0
-        self.backward_propogate(target,i+1)
+        self.backward_propogate(error,i+1)
         next_layer=self.hidden_layers[i+1]
         layer.delta_l=(np.transpose(next_layer.weights_matrix)).dot(next_layer.delta_l)*layer.activation_function_derivative
 
-    def train(self,input,target,alpha):
-        self.input_layer.set_input(input)
-        self.backward_propogate(target)
-        for layer in self.hidden_layers:
-            if type(layer)!=InputLayer:
-                 layer.weights_update(alpha)
+    def train(self,x_train,y_train,alpha=0.01,batch=1,iterations=10000):
+        x_train=np.reshape(x_train,(60000,28**2,1))
+        for iteration in range(iterations):
+            print(iteration)
+            k=np.random.randint(len(x_train))
+            target=np.zeros((10,1))
+            target[y_train(k)]=1
+            error=self.forward_propogate(x_train[k])-target
+            self.backward_propogate(error)
+            for layer in self.hidden_layers:
+                layer.weights_update(alpha)
 
     def print(self):
         for layer in [self.input_layer,self.hidden_layers,self.out_layer]:

@@ -1,4 +1,3 @@
-import imp
 from NeuroNet import *
 import tensorflow as tf
 import numpy as np
@@ -28,14 +27,7 @@ net=Net(
     HiddenLayer(10),
     OutLayer()
 )
-for i in range(100000):
-    print(i)
-    k=np.random.randint(60000)
-    x_train_vector=np.array(x_train[k,:,:,0])
-    x_train_vector.resize(28**2)
-    target=np.zeros((10,1))
-    target[y_train[k]]=1
-    net.train(x_train_vector,target,0.01)
+net.train(x_train,y_train)
 
 n=10
 fig,ax=plt.subplots(2,n)
