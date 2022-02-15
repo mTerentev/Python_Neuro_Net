@@ -1,4 +1,3 @@
-from tkinter.tix import INTEGER
 import numpy as np
 class Layer():
     values_vector=None
@@ -60,27 +59,26 @@ class Net():
             layer.forward_propogate(learn)
         return self.out_layer.output()
     
-    def backward_propogate(self,error,i=0):
-        layer=self.hidden_layers[i]
-        next_layer=[*self.hidden_layers,self.out_layer][i+1]
-        if type(next_layer)==OutLayer:
-            layer.delta_l=error*layer.activation_function_derivative
+    def backward_propogate(self,target,i=0):
+        layer=[*self.hidden_layers,self.out_layer][i]
+        previous_layer=self.hidden_layers[i-1]
+        layer.forward_propogate(True)
+        if i==len(self.hidden_layers)-1:
+            layer.delta_l=(layer.values_vector-target)*layer.activation_function_derivative
             return 0
-        self.backward_propogate(error,i+1)
+        self.backward_propogate(target,i+1)
+        next_layer=self.hidden_layers[i+1]
         layer.delta_l=(np.transpose(next_layer.weights_matrix)).dot(next_layer.delta_l)*layer.activation_function_derivative
 
-    def train(self,x_train,y_train,alpha=0.1,batch=10,iterations=10000):
-        for iteration in range(iterations):
-            print(iteration)
-            errors=[]
-            for i in range(batch):
-                k=np.random.randint(len(x_train))
-                errors.append(self.forward_propogate(x_train[k],True)-y_train[k])
-            error=np.average(errors)
-            self.backward_propogate(error)
-            for layer in self.hidden_layers:
-                layer.weights_update(alpha)
+    def train(self,input,target,alpha):
+        self.input_layer.set_input(input)
+        self.backward_propogate(target)
+        for layer in self.hidden_layers:
+            if type(layer)!=InputLayer:
+                 layer.weights_update(alpha)
 
     def print(self):
         for layer in [self.input_layer,self.hidden_layers,self.out_layer]:
             print(np.transpose(layer.values_vector))
+
+
