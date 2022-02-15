@@ -1,5 +1,3 @@
-from cairo import STATUS_DEVICE_FINISHED
-from matplotlib.cbook import safe_masked_invalid
 from NeuroNet import *
 import tensorflow as tf
 import numpy as np
@@ -28,7 +26,7 @@ net=Net(
     HiddenLayer(500),
     HiddenLayer(10)
 )
-for i in range(1000000):
+for i in range(10000):
     print(i)
     k=np.random.randint(60000)
     x_train_vector=np.array(x_train[k,:,:,0])
