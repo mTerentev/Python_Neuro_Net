@@ -17,6 +17,9 @@ def index_of_max(vector):
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 x_train, x_test = x_train[..., np.newaxis]/255.0, x_test[..., np.newaxis]/255.0
 
+x_train_prep=np.reshape(x_train,(60000,28**2))
+x_test_prep=np.reshape(x_test,(10000,28**2))
+
 print("Number of original training examples:", len(x_train))
 print("Number of original test examples:", len(x_test))
 
@@ -27,32 +30,32 @@ net=Net(
     HiddenLayer(10),
     OutLayer()
 )
-net.train(x_train,y_train)
+net.train(x_train_prep,y_train,iterations=1000000)
 
 n=10
 fig,ax=plt.subplots(2,n)
 for i in range(n):
     k=np.random.randint(10000)
-    x_test_vector=np.array(x_test[i,:,:,0])
-    x_test_vector.resize(28**2)
 
-    ax[0][i].imshow(x_test[i,:,:,0])
+    ax[0][i].imshow(x_test[k])
     ax[0][i].set_yticklabels([])
     ax[0][i].set_xticklabels([])
-    temp=net.forward_propogate(x_test_vector)
+    temp=net.forward_propogate(x_test_prep[k])
     temp.resize(10)
     ax[1][i].bar(np.arange(10),temp)
     ax[1][i].set_xticks(np.arange(10),labels=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
     ax[1][i].set_yticklabels([])
 
+
 result=0
-for i in range(10000):
-    x_test_vector=np.array(x_test[i,:,:,0])
-    x_test_vector.resize(28**2)
-    out=net.forward_propogate(x_test_vector)
-    if index_of_max(out)==y_test[i]:
+
+for i in range(100000):
+    print(i/1000)
+    k=np.random.randint(10000)
+    out=net.forward_propogate(x_test_prep[k])
+    if index_of_max(out)==y_test[k]:
         result+=1
-result/=10000
+result/=1000
 plt.show()
 print(result)
 # input()
