@@ -8,6 +8,8 @@ class Layer():
         self.previous_layer=previous_layer
 
 class InputLayer(Layer):
+    def __init__(self, n):
+        super().__init__(n)
     def set_input(self,i):
         self.values_vector=np.transpose(np.array([i]))
 
@@ -47,7 +49,7 @@ class Net():
     out_layer:OutLayer=None
 
     def __init__(self,*args):
-        (self.input_layer, *self.hidden_layers, self.out_layer) =args
+        self.input_layer, *self.hidden_layers, self.out_layer=args
         pl=self.input_layer
         for layer in [*self.hidden_layers, self.out_layer]:
             layer.connect(pl)
@@ -70,16 +72,16 @@ class Net():
         layer.delta_l=(np.transpose(next_layer.weights_matrix)).dot(next_layer.delta_l)*layer.activation_function_derivative
 
     def train(self,x_train,y_train,alpha=0.01,batch=1,iterations=10000):
-        x_train=np.reshape(x_train,(60000,28**2,1))
         for iteration in range(iterations):
             print(iteration)
             k=np.random.randint(len(x_train))
             target=np.zeros((10,1))
-            target[y_train(k)]=1
+            target[y_train[k]]=1
             error=self.forward_propogate(x_train[k])-target
             self.backward_propogate(error)
             for layer in self.hidden_layers:
                 layer.weights_update(alpha)
+                #layer.offsets_update(alpha)
 
     def print(self):
         for layer in [self.input_layer,self.hidden_layers,self.out_layer]:
