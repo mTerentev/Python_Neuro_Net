@@ -1,8 +1,7 @@
-from cairo import STATUS_DEVICE_FINISHED
 from matplotlib.cbook import safe_masked_invalid
 from NeuroNet import *
 import tensorflow as tf
-import numpy as np
+import cupy as np
 import matplotlib.pyplot as plt
 
 def index_of_max(vector):
@@ -18,6 +17,9 @@ def index_of_max(vector):
 
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 x_train, x_test = x_train[..., np.newaxis]/255.0, x_test[..., np.newaxis]/255.0
+
+x_train=np.array(x_train)
+y_train=np.array(y_train)
 
 print("Number of original training examples:", len(x_train))
 print("Number of original test examples:", len(x_test))
