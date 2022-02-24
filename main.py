@@ -18,8 +18,13 @@ def index_of_max(vector):
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 x_train, x_test = x_train[..., cp.newaxis]/255.0, x_test[..., cp.newaxis]/255.0
 
-x_train_prep=cp.reshape(x_train,(60000,28**2))
-x_test_prep=cp.reshape(x_test,(10000,28**2))
+# x_train=x_train[0:1000]
+# x_test=x_test[0:100]
+# y_train=y_train[0:1000]
+# y_test=y_test[0:100]
+
+x_train_prep=cp.reshape(x_train,(len(x_train),28**2))
+x_test_prep=cp.reshape(x_test,(len(x_test),28**2))
 
 x_train_prep=cp.array(x_train_prep)
 x_test_prep=cp.array(x_test_prep)
@@ -39,14 +44,14 @@ net=Net(
 )
 #net.train(x_train_prep,y_train,iterations=100000)
 #net.save_config()
-#net.load_config()
-net.train(x_train_prep,y_train,iterations=100000)
-net.save_config()
+net.load_config()
+# net.train(x_train_prep,y_train,iterations=100000)
+# net.save_config()
 
 n=10
 fig,ax=plt.subplots(2,n)
 for i in range(n):
-    k=np.random.randint(10000)
+    k=np.random.randint(len(x_test))
 
     ax[0][i].imshow(x_test[k])
     ax[0][i].set_yticklabels([])
@@ -61,13 +66,13 @@ for i in range(n):
 
 result=0
 
-for i in range(100000):
-    print(i/1000)
-    k=cp.random.randint(10000)
-    out=net.forward_propogate(x_test_prep[k])
-    if index_of_max(out)==y_test[k]:
+for i in range(len(x_test)):
+    print(i)
+    #k=np.random.randint(len(x_test))
+    out=net.forward_propogate(x_test_prep[i])
+    if index_of_max(out)==y_test[i]:
         result+=1
-result/=1000
+result/=len(x_test)
 plt.show()
 print(result)
 # icput()
