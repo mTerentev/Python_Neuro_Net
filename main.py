@@ -30,7 +30,11 @@ net=Net(
     HiddenLayer(10),
     OutLayer()
 )
-net.train(x_train_prep,y_train,iterations=1000000)
+#net.train(x_train_prep,y_train,iterations=100000)
+#net.save_config()
+#net.load_config()
+net.train(x_train_prep,y_train,iterations=100000)
+net.save_config()
 
 n=10
 fig,ax=plt.subplots(2,n)

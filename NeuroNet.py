@@ -1,4 +1,5 @@
 import numpy as np
+import main
 class Layer():
     values_vector=None
     previous_layer=None
@@ -32,7 +33,7 @@ class HiddenLayer(Layer):
 
     def __init__(self, n):
         super().__init__(n)
-        self.offsets_vector=np.random.random((n,1))
+        self.offsets_vector=np.zeros((n,1))
     
     def forward_propogate(self,learning=False):
         self.values_vector=self.activation_function(self.weights_matrix.dot(self.previous_layer.values_vector)+self.offsets_vector)
@@ -81,10 +82,24 @@ class Net():
             self.backward_propogate(error)
             for layer in self.hidden_layers:
                 layer.weights_update(alpha)
-                #layer.offsets_update(alpha)
+                layer.offsets_update(100*alpha)
 
     def print(self):
         for layer in [self.input_layer,self.hidden_layers,self.out_layer]:
             print(np.transpose(layer.values_vector))
 
+    def save_config(self,file="config.npz"):
+        a=[]
+        for layer in self.hidden_layers:
+            a.append(layer.weights_matrix)
+            a.append(layer.offsets_vector)
+        np.savez_compressed(file,*a)
+    
+    def load_config(self,file="config.npz"):
+        i=0
+        for layer in self.hidden_layers:
+            layer.weights_matrix=np.load(file)["arr_"+str(i)]
+            layer.offsets_vector=np.load(file)["arr_"+str(i+1)]
+            i+=2
 
+main
