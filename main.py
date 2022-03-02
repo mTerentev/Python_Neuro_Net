@@ -37,16 +37,15 @@ print("Number of original test examples:", len(x_test))
 
 net=Net(
     InputLayer(28**2),
-    HiddenLayer(500),
-    HiddenLayer(500),
+    HiddenLayer(200),
+    HiddenLayer(200),
     HiddenLayer(10),
     OutLayer()
 )
-#net.train(x_train_prep,y_train,iterations=100000)
-#net.save_config()
-net.load_config()
-# net.train(x_train_prep,y_train,iterations=100000)
-# net.save_config()
+#net.load_config("config1.npz")
+net.train(x_train_prep,y_train,alpha=0.7,iterations=100000,debug=True)
+#net.train(x_train_prep,y_train,alpha1=0.0,beta=1,iterations=100000,debug=True)
+net.save_config("config1.npz")
 
 n=10
 fig,ax=plt.subplots(2,n)

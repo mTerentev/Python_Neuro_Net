@@ -1,4 +1,5 @@
 import cupy as cp
+import matplotlib.pyplot as plt
 class Layer():
     values_vector=None
     previous_layer=None
@@ -49,6 +50,7 @@ class Net():
     out_layer:OutLayer=None
 
     def __init__(self,*args):
+        self.hidden_layers
         self.icput_layer, *self.hidden_layers, self.out_layer=args
         pl=self.icput_layer
         for layer in [*self.hidden_layers, self.out_layer]:
@@ -71,7 +73,15 @@ class Net():
         next_layer=self.hidden_layers[i+1]
         layer.delta_l=(cp.transpose(next_layer.weights_matrix)).dot(next_layer.delta_l)*layer.activation_function_derivative
 
-    def train(self,x_train,y_train,alpha=0.01,batch=1,iterations=10000):
+    def train(self,x_train,y_train,alpha=0.01,beta=0,batch=1,iterations=10000,debug=False):
+        if debug:
+            a=[]
+            plt.ion()
+            fig=plt.figure()
+            ax=fig.add_subplot(111)
+            x=cp.zeros((1))
+            y=cp.zeros((1))
+            line,=ax.plot(x.get(),y.get())
         for iteration in range(iterations):
             print(iteration)
             k=cp.random.randint(len(x_train))
@@ -81,7 +91,21 @@ class Net():
             self.backward_propogate(error)
             for layer in self.hidden_layers:
                 layer.weights_update(alpha)
-                layer.offsets_update(100*alpha)
+                layer.offsets_update(beta)
+            if debug:
+                a.append(cp.linalg.norm(error))
+            if debug and iteration%100==0:
+                x=cp.linspace(0,iteration+101,iteration+101)
+                y=cp.concatenate((cp.array(y),cp.ones((100))*cp.average(a)))
+                a=[]
+                print(cp.shape(x))
+                print(cp.shape(y))
+                line.set_xdata(x.get())
+                line.set_ydata(y.get())
+                ax.relim()
+                ax.autoscale_view()
+                fig.canvas.draw()
+                fig.canvas.flush_events()
 
     def print(self):
         for layer in [self.icput_layer,self.hidden_layers,self.out_layer]:
