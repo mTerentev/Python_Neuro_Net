@@ -73,39 +73,47 @@ class Net():
         next_layer=self.hidden_layers[i+1]
         layer.delta_l=(cp.transpose(next_layer.weights_matrix)).dot(next_layer.delta_l)*layer.activation_function_derivative
 
-    def train(self,x_train,y_train,alpha=0.01,beta=0,batch=1,iterations=10000,debug=False):
+    def train(self,x_train,y_train,alpha=0.01,beta=0,batch=1,iterations=10000,debug=False,dynamic_input=True):
+        probabilities=cp.ones((len(x_train)))
         if debug:
             a=[]
             plt.ion()
-            fig=plt.figure()
-            ax=fig.add_subplot(111)
-            x=cp.zeros((1))
-            y=cp.zeros((1))
-            line,=ax.plot(x.get(),y.get())
+            fig,ax=plt.subplots((1))
+            y=cp.zeros((0))
+            line,=ax.plot(cp.array([0]).get(),cp.array([0]).get())
         for iteration in range(iterations):
-            print(iteration)
-            k=cp.random.randint(len(x_train))
+            if dynamic_input:
+                probabilities/=probabilities.sum()
+                k,=cp.random.choice(len(x_train),1,True,probabilities)
+            else:
+                k=cp.random.randint(len(x_train))
             target=cp.zeros((10,1))
             target[y_train[k]]=1
             error=self.forward_propogate(x_train[k])-target
             self.backward_propogate(error)
+            norm_err=cp.linalg.norm(error)
+            gamma=1.5
+            if norm_err>0.5:
+                probabilities[k]*=gamma
+            if norm_err<0.1:
+                probabilities[k]/=gamma
             for layer in self.hidden_layers:
                 layer.weights_update(alpha)
                 layer.offsets_update(beta)
             if debug:
                 a.append(cp.linalg.norm(error))
-            if debug and iteration%100==0:
-                x=cp.linspace(0,iteration+101,iteration+101)
-                y=cp.concatenate((cp.array(y),cp.ones((100))*cp.average(a)))
+            step=500
+            if debug and iteration%step==0:
+                x=cp.linspace(0,iteration,iteration//step+1)
+                y=cp.concatenate((cp.array(y),cp.ones((1))*cp.average(a)))
                 a=[]
-                print(cp.shape(x))
-                print(cp.shape(y))
                 line.set_xdata(x.get())
                 line.set_ydata(y.get())
                 ax.relim()
                 ax.autoscale_view()
                 fig.canvas.draw()
                 fig.canvas.flush_events()
+        
 
     def print(self):
         for layer in [self.icput_layer,self.hidden_layers,self.out_layer]:

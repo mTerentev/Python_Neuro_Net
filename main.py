@@ -35,15 +35,20 @@ y_test=cp.array(y_test)
 print("Number of original training examples:", len(x_train))
 print("Number of original test examples:", len(x_test))
 
+# ax=plt.subplot()
+# ax.imshow(x_train[38275])
+# plt.show()
+
 net=Net(
     InputLayer(28**2),
+    HiddenLayer(200),
     HiddenLayer(200),
     HiddenLayer(200),
     HiddenLayer(10),
     OutLayer()
 )
 #net.load_config("config1.npz")
-net.train(x_train_prep,y_train,alpha=0.7,iterations=100000,debug=True)
+net.train(x_train_prep,y_train,alpha=0.6,iterations=10000000,debug=True,dynamic_input=True)
 #net.train(x_train_prep,y_train,alpha1=0.0,beta=1,iterations=100000,debug=True)
 net.save_config("config1.npz")
 
@@ -51,7 +56,6 @@ n=10
 fig,ax=plt.subplots(2,n)
 for i in range(n):
     k=np.random.randint(len(x_test))
-
     ax[0][i].imshow(x_test[k])
     ax[0][i].set_yticklabels([])
     ax[0][i].set_xticklabels([])
@@ -64,14 +68,11 @@ for i in range(n):
 
 
 result=0
-
 for i in range(len(x_test)):
     print(i)
-    #k=np.random.randint(len(x_test))
     out=net.forward_propogate(x_test_prep[i])
     if index_of_max(out)==y_test[i]:
         result+=1
 result/=len(x_test)
-plt.show()
 print(result)
-# icput()
+input()
