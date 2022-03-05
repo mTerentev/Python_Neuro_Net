@@ -48,9 +48,9 @@ net=Net(
     OutLayer()
 )
 #net.load_config("config1.npz")
-net.train(x_train_prep,y_train,alpha=0.6,iterations=10000000,debug=True,dynamic_input=True)
+net.train(x_train_prep,y_train,alpha=0.6,iterations=1000000,debug=True,dynamic_input=True)
 #net.train(x_train_prep,y_train,alpha1=0.0,beta=1,iterations=100000,debug=True)
-net.save_config("config1.npz")
+net.save_config("config2.npz")
 
 n=10
 fig,ax=plt.subplots(2,n)
@@ -69,7 +69,6 @@ for i in range(n):
 
 result=0
 for i in range(len(x_test)):
-    print(i)
     out=net.forward_propogate(x_test_prep[i])
     if index_of_max(out)==y_test[i]:
         result+=1

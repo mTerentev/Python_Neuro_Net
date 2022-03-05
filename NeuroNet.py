@@ -74,6 +74,7 @@ class Net():
         layer.delta_l=(cp.transpose(next_layer.weights_matrix)).dot(next_layer.delta_l)*layer.activation_function_derivative
 
     def train(self,x_train,y_train,alpha=0.01,beta=0,batch=1,iterations=10000,debug=False,dynamic_input=True):
+        ignored=0
         probabilities=cp.ones((len(x_train)))
         if debug:
             a=[]
@@ -81,7 +82,9 @@ class Net():
             fig,ax=plt.subplots((1))
             y=cp.zeros((0))
             line,=ax.plot(cp.array([0]).get(),cp.array([0]).get())
+        counter=0
         for iteration in range(iterations):
+            counter+=1
             if dynamic_input:
                 probabilities/=probabilities.sum()
                 k,=cp.random.choice(len(x_train),1,True,probabilities)
@@ -97,6 +100,11 @@ class Net():
                 probabilities[k]*=gamma
             if norm_err<0.1:
                 probabilities[k]/=gamma
+                counter=0
+            if probabilities[k]>0.99999 and counter>10000:
+                counter=0
+                probabilities[k]=0
+                ignored+=1
             for layer in self.hidden_layers:
                 layer.weights_update(alpha)
                 layer.offsets_update(beta)
@@ -104,6 +112,7 @@ class Net():
                 a.append(cp.linalg.norm(error))
             step=500
             if debug and iteration%step==0:
+                print(ignored)
                 x=cp.linspace(0,iteration,iteration//step+1)
                 y=cp.concatenate((cp.array(y),cp.ones((1))*cp.average(a)))
                 a=[]
